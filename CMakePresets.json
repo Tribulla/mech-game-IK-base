@@ -1,0 +1,79 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 22, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "windows",
+      "displayName": "Windows (Visual Studio - Full Project)",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "windows-lib-only",
+      "displayName": "Windows (Visual Studio - IK Library + Tests + Example Only)",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "binaryDir": "${sourceDir}/build-lib",
+      "cacheVariables": { "GAITCORE_BUILD_DEMO": "OFF" }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release (Full Project)",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "linux-lib-only",
+      "displayName": "Linux Release (IK Library + Tests + Example Only)",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "binaryDir": "${sourceDir}/build-lib",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "GAITCORE_BUILD_DEMO": "OFF"
+      }
+    },
+    {
+      "name": "macos",
+      "displayName": "macOS (Xcode - Full Project)",
+      "generator": "Xcode",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "macos-lib-only",
+      "displayName": "macOS (Xcode - IK Library + Tests + Example Only)",
+      "generator": "Xcode",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
+      "binaryDir": "${sourceDir}/build-lib",
+      "cacheVariables": { "GAITCORE_BUILD_DEMO": "OFF" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "windows-release",  "configurePreset": "windows",          "configuration": "Release" },
+    { "name": "windows-debug",    "configurePreset": "windows",          "configuration": "Debug" },
+    { "name": "windows-lib-only", "configurePreset": "windows-lib-only", "configuration": "Release" },
+    { "name": "linux-release",    "configurePreset": "linux-release" },
+    { "name": "linux-lib-only",   "configurePreset": "linux-lib-only" },
+    { "name": "macos-release",    "configurePreset": "macos",            "configuration": "Release" },
+    { "name": "macos-lib-only",   "configurePreset": "macos-lib-only",   "configuration": "Release" }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-release",
+      "configurePreset": "windows",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

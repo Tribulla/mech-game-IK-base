@@ -1,0 +1,14 @@
+build/
+.fetchcontent-cache/
+screenshots/
+imgui.ini
+settings.ini
+.vs/
+.vscode/
+.idea/
+.cache/
+CMakeUserPresets.json
+.DS_Store
+__pycache__/
+*.pyc
+build-*/
