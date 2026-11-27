@@ -25,7 +25,32 @@ Compile all `.c` files under `IK/c/src/` as C11 with `IK/c/include/` and `IK/c/s
 - Windows: zero extra libraries needed beyond standard CRT + Win32.
 - Linux/macOS: link `-lpthread -lm`.
 
-### Option C — Reference / Prototyping in Python (`IK/python/`)
+### Option C — Copy `IK/java/` for Java 17+ / JVM Engines
+
+`IK/java/` has **zero external dependencies** outside `java.base`. Copy `IK/java/src/main/java/gaitcore/` into your source tree (or include `IK/java/` via CMake `add_subdirectory` to link `gaitcore.jar`).
+
+```java
+try (GcContext ctx = GcContext.create(0)) { // 0 = auto thread count
+    ctx.setWorld(myWorldCallbacks);        // implements GcWorldCallbacks (read-only & thread-safe)
+
+    GcMechDesc desc = GcMechDesc.createDefault(4);
+    desc.name = "PANTHER_MK2";
+    desc.speedWalk = 18.0f;
+    desc.speedRun  = 28.0f;
+    int kind = ctx.registerMechType(desc);
+    int mech = ctx.spawn(kind, 0.0f, 0.0f, 0.0f, 0.0f);
+
+    float[] inputs = new float[GaitCore.INPUT_STRIDE];
+    float[] poses  = new float[ctx.floatsPerMech(mech)];
+    inputs[GaitCore.IN_FWD] = 1.0f;
+    ctx.step(1.0f / 60.0f, inputs, 1);
+    ctx.poses(poses, poses.length);
+}
+```
+
+See [../examples/CustomMechExample.java](../examples/CustomMechExample.java) for a full runnable Java integration program.
+
+### Option D — Reference / Prototyping in Python (`IK/python/`)
 
 Copy `IK/python/gaitcore/` anywhere on your Python `sys.path`. Implement a matching world object (`world.set_world(...)`) exposing `raycast`, `sphere_push`, and `terrain_height`, or run embedded CPython via `gaitcore.api` just like [../demo/scenes/mech_bridge.h](../demo/scenes/mech_bridge.h).
 

@@ -1,6 +1,6 @@
 # Architecture & Gait Design
 
-The procedural IK and gait core ships as two matching implementations—multithreaded C11 (`IK/c/`) and a pure-Python twin (`IK/python/gaitcore/`)—kept strictly separate from any host renderer or physics world.
+The procedural IK and gait core ships as three matching implementations—multithreaded C11 (`IK/c/`), multithreaded Java 17+ (`IK/java/`), and a pure-Python twin (`IK/python/gaitcore/`)—kept strictly separate from any host renderer or physics world.
 
 ---
 
@@ -9,9 +9,9 @@ The procedural IK and gait core ships as two matching implementations—multithr
 The core never owns level geometry and never touches GPU/audio state directly. Each frame follows a strict one-way data flow:
 
 ```text
-  Host Engine / Game (C / C++ / Python)        IK/c/ (or IK/python/gaitcore/)
-  ─────────────────────────────────────        ──────────────────────────────
-  inputs (12 floats / mech) ─ gc_step() ─────▶ Per-mech parallel update × substeps (<= 1/60s)
+  Host Engine / Game (C / C++ / Java / Python)  IK/c/ | IK/java/ | IK/python/gaitcore/
+  ────────────────────────────────────────────  ────────────────────────────────────────
+  inputs (12 floats / mech) ─ gc_step() ──────▶ Per-mech parallel update × substeps (<= 1/60s)
                                                  │ Body locomotion (ground | air | crouchjump | mantle)
   read-only world callbacks ◀── queries ──────── │ Orientation & ride-height springs
    (raycast, sphere_push, height)                │ Situation probes & blended gait selector
@@ -20,24 +20,24 @@ The core never owns level geometry and never touches GPU/audio state directly. E
                          ◀───── gc_events()
 ```
 
-- **Why per-mech isolation makes multithreading deterministic**: Each `GcMech` owns its own scratch buffers (`GcWorldQueryCtx`), PRNG state, event vector, and cache-line-aligned (`64 B`) struct so threads never share mutable state or contend on locks. `gc_step()` dispatches `0..count-1` onto a persistent Win32/POSIX work-stealing pool (`gc_thread.c`), then drains events and stats in handle order `0..count-1`, keeping simulation output identical regardless of worker thread count.
+- **Why per-mech isolation makes multithreading deterministic**: Each mech instance owns its own scratch buffers (`GcWorldQueryCtx` / `WorldQueryCtx`), PRNG state, and event vector so worker threads never share mutable state or contend on locks. `gc_step()` / `GcContext.step()` dispatches `0..count-1` onto a persistent worker pool (`gc_thread.c` in C, `ThreadPool.java` daemon threads + atomic cursor in Java), then drains events and stats in handle order `0..count-1`, keeping simulation output bit-identical (`1T == 4T == 8T`) regardless of worker thread count.
 
 ### Source Module Mapping
 
-| Responsibility | C11 (`IK/c/src/`) | Python (`IK/python/gaitcore/`) |
-|---|---|---|
-| Public API & thread pool dispatch | `gc_api.c`, `gc_thread.c` | `api.py` |
-| Vector, frame, convex hull, plane fit | `gc_vmath.c` | `vmath.py` |
-| World query context & `StubWorld` | `gc_world.c` | `world.py` |
-| Planar 2-bone / FABRIK / DLS solver | `gc_ik.c` | `ik.py` |
-| Archetype presets & custom descriptors | `gc_mechdefs.c` | `mechdefs.py` |
-| Gait phase tables & blending | `gc_gaits.c` | `gaits.py` |
-| Situation lookahead & gait ladder | `gc_gaitsel.c` | `gaitsel.py` |
-| Quintic swing shaping & leg state | `gc_leg.c` | `leg.py` |
-| Foothold scoring, edge/rock avoidance | `gc_foothold.c` | `foothold.py` |
-| Knee clearance & radial plane roll | `gc_clearance.c` | `clearance.py` |
-| Rhythm + reactive scheduler & support vetoes | `gc_scheduler.c` | `scheduler.py` |
-| Hull locomotion, jump/brace, slide, climb | `gc_mech.c` | `mech.py` |
+| Responsibility | C11 (`IK/c/src/`) | Java 17+ (`IK/java/.../gaitcore/`) | Python (`IK/python/gaitcore/`) |
+|---|---|---|---|
+| Public API & thread pool dispatch | `gc_api.c`, `gc_thread.c` | `GaitCore.java`, `GcContext.java`, `ThreadPool.java` | `api.py` |
+| Vector, frame, convex hull, plane fit | `gc_vmath.c` | `Vec3.java` | `vmath.py` |
+| World query context & `StubWorld` | `gc_world.c` | `GcWorldCallbacks.java`, `GcStubWorld.java`, `WorldQueryCtx.java` | `world.py` |
+| Planar 2-bone / FABRIK / DLS solver | `gc_ik.c` | `LegIK.java` | `ik.py` |
+| Archetype presets & custom descriptors | `gc_mechdefs.c` | `GcMechDesc.java`, `MechDef.java`, `GcMechInfo.java` | `mechdefs.py` |
+| Gait phase tables & blending | `gc_gaits.c` | `Gait.java` | `gaits.py` |
+| Situation lookahead & gait ladder | `gc_gaitsel.c` | `GaitSelector.java` | `gaitsel.py` |
+| Quintic swing shaping & leg state | `gc_leg.c` | `Leg.java` | `leg.py` |
+| Foothold scoring, edge/rock avoidance | `gc_foothold.c` | `Foothold.java` | `foothold.py` |
+| Knee clearance & radial plane roll | `gc_clearance.c` | `Clearance.java` | `clearance.py` |
+| Rhythm + reactive scheduler & support vetoes | `gc_scheduler.c` | `Scheduler.java` | `scheduler.py` |
+| Hull locomotion, jump/brace, slide, climb | `gc_mech.c` | `Mech.java`, `GcBenchConfig.java`, `GcMechStats.java`, `GcQueryStats.java` | `mech.py` |
 
 ---
 

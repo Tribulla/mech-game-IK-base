@@ -6,8 +6,9 @@ project(mech_ik_core
 	LANGUAGES C CXX
 )
 
-option(GAITCORE_BUILD_TESTS    "Build C unit and determinism tests"        ${PROJECT_IS_TOP_LEVEL})
-option(GAITCORE_BUILD_EXAMPLES "Build minimal C integration example"       ${PROJECT_IS_TOP_LEVEL})
+option(GAITCORE_BUILD_TESTS    "Build C and Java unit/determinism tests" ${PROJECT_IS_TOP_LEVEL})
+option(GAITCORE_BUILD_EXAMPLES "Build minimal C and Java examples"         ${PROJECT_IS_TOP_LEVEL})
+option(GAITCORE_BUILD_JAVA     "Build Java 17+ IK library and tests"       ${PROJECT_IS_TOP_LEVEL})
 option(GAITCORE_BUILD_DEMO     "Build interactive 3D sokol/ImGui demo app" ${PROJECT_IS_TOP_LEVEL})
 option(GAITCORE_ENABLE_PYTHON  "Embed Python 3.10+ in the demo when found" ON)
 
@@ -30,6 +31,10 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 add_subdirectory(IK/c)
+
+if(GAITCORE_BUILD_JAVA)
+	add_subdirectory(IK/java)
+endif()
 
 if(GAITCORE_BUILD_EXAMPLES)
 	add_subdirectory(examples)

@@ -1,6 +1,6 @@
-# API Reference (`gaitcore.h` & `gaitcore.api`)
+# API Reference (`gaitcore.h`, `gaitcore` Java, & `gaitcore.api`)
 
-Complete reference for the C11 public API ([../IK/c/include/gaitcore.h](../IK/c/include/gaitcore.h)) and its Python counterpart ([../IK/python/gaitcore/api.py](../IK/python/gaitcore/api.py)).
+Complete reference for the C11 public API ([../IK/c/include/gaitcore.h](../IK/c/include/gaitcore.h)), the Java 17+ package ([../IK/java/src/main/java/gaitcore/](../IK/java/src/main/java/gaitcore/)), and the Python package ([../IK/python/gaitcore/api.py](../IK/python/gaitcore/api.py)).
 
 ---
 
@@ -162,3 +162,15 @@ Each debug line is `9` floats: `[ax, ay, az, bx, by, bz, role, 0, 0]` with `role
   - `glitch_check.py` — detects idle stepping, quick re-steps, hanging feet, and gallop pose spikes.
   - `gait_select_check.py` — audits situation-driven gait transitions without flapping.
   - `gait_film.py` — renders frame-by-frame side/top PNG strips + footfall strips.
+
+---
+
+## 5. Java 17+ Package (`IK/java/src/main/java/gaitcore`)
+
+All Java public types mirror the C API strides, pose offsets, input channels, and flags bit-for-bit using camelCase methods:
+
+- `GaitCore`: constants (`INPUT_STRIDE`, `HEADER_FLOATS`, `LEG_EXTRA_FLOATS`, `EVENT_FLOATS`, `DEBUG_LINE_FLOATS`, `PROFILE_FLOATS`, `IN_*`, `POSE_*`, `FLAG_*`, `STATE_*`, `EV_*`, `DBG_*`, `LEG_PLANE_*`) plus `hardwareThreads()`, `kindCount()`, `kindName(int)`.
+- `GcContext` (`AutoCloseable`): `GcContext.create(int numThreads)`, `close()`, `reset()`, `setWorld(GcWorldCallbacks)`, `setThreads(int)`, `getThreads()`, `registerMechType(GcMechDesc)`, `contextKindCount()`, `contextKindName(int)`, `clearCustomTypes()`, `spawn(...)`, `spawnCustom(...)`, `respawn(...)`, `despawnTo(int)`, `count()`, `floatsPerMech(int)`, `info(int, GcMechInfo)`, `setBenchConfig(GcBenchConfig)`, `step(float, float[], int)`, `poses(float[], int)`, `events(float[], int)`, `debugLines(int, float[], int)`, `setDebug(boolean)`, `stats(int, GcMechStats)`, `profileData(float[], int)`, `resetQueryStats()`, `getQueryStats()`, `lastCpuMs()`.
+- `GcWorldCallbacks` & `GcStubWorld`: thread-safe read-only `raycast(...)`, `spherePush(...)`, and optional `terrainHeight(...)`; `GcStubWorld` supports flat ground, AABBs (`addBox`), and rotated OBBs (`addOBox`).
+- `GcMechDesc`: mutable custom mech descriptor matching `GcMechDesc` in `gaitcore.h`, with `createDefault(int numLegs)`, `fromPreset(int, GcMechDesc)`, `copy()`, `copyFrom(...)`, `equals`/`hashCode`.
+- `GcBenchConfig`, `GcMechInfo`, `GcMechStats`, `GcQueryStats`: public configuration and telemetry data classes.

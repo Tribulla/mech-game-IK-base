@@ -14,3 +14,14 @@ if(MSVC)
 else()
 	target_compile_options(custom_mech_example PRIVATE -Wall -Wextra -Wno-unused-parameter)
 endif()
+
+if(TARGET gaitcore_java)
+	include(UseJava)
+	set(CMAKE_JAVA_COMPILE_FLAGS --release 17 -Xlint:all -Werror)
+	add_jar(custom_mech_example_java
+		SOURCES CustomMechExample.java
+		INCLUDE_JARS gaitcore_java
+		ENTRY_POINT CustomMechExample
+		OUTPUT_NAME custom_mech_example_java
+	)
+endif()
